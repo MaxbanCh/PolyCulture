@@ -1,5 +1,6 @@
 import { Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import router from "../utils/router.ts";
+import client, { executeQuery } from "../database/client.ts";
 
 // Load questions from JSON file
 let questions: any[] = [];
@@ -24,7 +25,7 @@ router.get("/themes", (ctx) => {
   ctx.response.body = { themes };
 });
 
-router.get("/question", (ctx) => {
+router.get("/randomquestion", (ctx) => {
   const theme = ctx.request.url.searchParams.get("theme");
   let filteredQuestions = questions;
 
@@ -62,6 +63,57 @@ router.post("/answer", async (ctx) => {
     ctx.response.status = 200;
     ctx.response.body = { correct: false };
   }
+});
+
+router.get("/question", async (ctx) => {
+  const questionId = ctx.request.url.searchParams.get("id");
+  
+  // Si un ID est fourni, renvoyer la question spécifique
+  if (questionId) {
+    const question = questions.find((q) => q.id === parseInt(questionId) || q.id === questionId);
+    // const question = await executeQuery(
+    //     "SELECT questions.id, question, answer, theme, subtheme from 
+    //     (SELECT * FROM questions WHERE id = $1)",
+    //   [user]
+    //   );
+    
+    if (!question) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "Question not found" };
+      return;
+    }
+    
+    ctx.response.status = 200;
+    ctx.response.body = question;
+    return;
+  }
+  
+  // Si aucun ID n'est fourni, renvoyer toutes les questions (avec pagination optionnelle)
+  const page = parseInt(ctx.request.url.searchParams.get("page") || "1");
+  const limit = parseInt(ctx.request.url.searchParams.get("limit") || "10");
+  const theme = ctx.request.url.searchParams.get("theme");
+  
+  let filteredQuestions = questions;
+  
+  // Filtrage par thème si spécifié
+  if (theme) {
+    filteredQuestions = questions.filter((q) =>
+      q.theme.toLowerCase().includes(theme.toLowerCase())
+    );
+  }
+  
+  // Pagination
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const results = {
+    totalQuestions: filteredQuestions.length,
+    totalPages: Math.ceil(filteredQuestions.length / limit),
+    currentPage: page,
+    questions: filteredQuestions.slice(startIndex, endIndex)
+  };
+  
+  ctx.response.status = 200;
+  ctx.response.body = results;
 });
 
 export default router;

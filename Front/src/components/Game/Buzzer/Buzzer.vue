@@ -25,8 +25,8 @@ function priority(event){
         } else {
             light.style.backgroundColor = "red";
         }
-        light.style.width = "400px";
-        light.style.height = "100px";
+        light.style.width = "80%";
+        light.style.height = "40%";
     }
 
     return ;
