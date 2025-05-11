@@ -90,7 +90,7 @@ router.get("/question", async (ctx) => {
   
   // Si aucun ID n'est fourni, renvoyer toutes les questions (avec pagination optionnelle)
   const page = parseInt(ctx.request.url.searchParams.get("page") || "1");
-  const limit = parseInt(ctx.request.url.searchParams.get("limit") || "10");
+  const limit = parseInt(ctx.request.url.searchParams.get("limit") || "20");
   const theme = ctx.request.url.searchParams.get("theme");
   
   let filteredQuestions = questions;
@@ -114,6 +114,100 @@ router.get("/question", async (ctx) => {
   
   ctx.response.status = 200;
   ctx.response.body = results;
+});
+
+router.post("/question", async (ctx) => {
+  try {
+    const body = await ctx.request.body().value;
+    
+    // Validation des données minimales requises
+    if (!body.question || !body.answer) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "Question and answer are required" };
+      return;
+    }
+    
+    // Générer un nouvel ID (en supposant que vous utilisez des ID numériques séquentiels)
+    const newId = Math.max(...questions.map(q => parseInt(q.id.toString())), 0) + 1;
+    
+    const newQuestion = {
+      id: newId,
+      question: body.question,
+      answer: body.answer,
+      theme: body.theme || "Général",
+      // Ajoutez d'autres champs selon votre modèle de données
+    };
+    
+    // Ajouter à la liste en mémoire
+    questions.push(newQuestion);
+    
+    // Potentiellement sauvegarder dans un fichier JSON ou une base de données
+    // await Deno.writeTextFile("./questions_with_ids.json", JSON.stringify(questions));
+    
+    ctx.response.status = 201;
+    ctx.response.body = newQuestion;
+  } catch (error) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to create question" };
+  }
+});
+
+// Mettre à jour une question existante (UPDATE)
+router.put("/question/:id", async (ctx) => {
+  try {
+    const { id } = ctx.params;
+    const body = await ctx.request.body().value;
+    
+    const index = questions.findIndex(q => q.id === parseInt(id) || q.id === id);
+    
+    if (index === -1) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "Question not found" };
+      return;
+    }
+    
+    // Mettre à jour la question
+    questions[index] = {
+      ...questions[index],
+      ...body,
+      id: questions[index].id // Préserver l'ID original
+    };
+    
+    // Potentiellement sauvegarder dans un fichier JSON ou une base de données
+    // await Deno.writeTextFile("./questions_with_ids.json", JSON.stringify(questions));
+    
+    ctx.response.status = 200;
+    ctx.response.body = questions[index];
+  } catch (error) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to update question" };
+  }
+});
+
+// Supprimer une question (DELETE)
+router.delete("/question/:id", async (ctx) => {
+  try {
+    const { id } = ctx.params;
+    const index = questions.findIndex(q => q.id === parseInt(id) || q.id === id);
+    
+    if (index === -1) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "Question not found" };
+      return;
+    }
+    
+    // Supprimer la question
+    const deletedQuestion = questions.splice(index, 1)[0];
+    
+    // Potentiellement sauvegarder dans un fichier JSON ou une base de données
+    // await Deno.writeTextFile("./questions_with_ids.json", JSON.stringify(questions));
+    
+    ctx.response.status = 200;
+    ctx.response.body = { message: "Question deleted successfully", question: deletedQuestion };
+  } catch (error) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to delete question" };
+  }
 });
 
 export default router;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
     import { ref, onMounted } from "vue";
     import { useRouter } from 'vue-router';
+    import ManageQuestion from './ManageQuestion.vue';
 
     const router = useRouter();
     let wait = ref(true);
@@ -79,7 +80,7 @@
         </div>
         <div v-else>
             <h1>Panneau d'administration</h1>
-            <!-- Contenu de l'administration ici -->
+            <ManageQuestion />
         </div>
     </div>
 </template>

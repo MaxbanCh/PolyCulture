@@ -37,6 +37,27 @@ export default createRouter({
 			path: "/profil",
 			name: "Profil",
 			component: Profil,
+			beforeEnter: (to, from, next) => {
+				const token = localStorage.getItem('auth_token');
+				if (!token) {
+					next('/login');
+				} else {
+					// Vérification du token
+					fetch("http://83.195.188.17:3000/profil", {
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					})
+					.then(response => {
+						if (response.status === 200) {
+							next(); // Autoriser l'accès
+						} else {
+							next('/'); // Rediriger vers la page d'accueil
+						}
+					})
+					.catch(() => next('/connexion'));
+				}
+			}
 		},
 		{
 			path: "/admin",

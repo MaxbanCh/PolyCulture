@@ -183,6 +183,13 @@ router.post("/register", async (ctx) => {
     }
   });
 
+  router.get("/check-token", async (ctx) => {
+  // Le middleware d'authentification vérifie déjà le token
+  // Si nous arrivons ici, c'est que le token est valide
+  ctx.response.status = 200;
+  ctx.response.body = { valid: true };
+});
+
   router.get("/profil", async (ctx) => {
     const token = ctx.request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {

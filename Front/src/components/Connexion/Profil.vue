@@ -115,7 +115,40 @@ function redirectAdmin() {
     }
 }
 
+async function checkAuthStatus() {
+  const token = localStorage.getItem('auth_token');
+  
+  if (!token) {
+    console.log("Token absent, déconnexion automatique");
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await fetch("http://83.195.188.17:3000/check-token", {
+      method: "GET",
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.log("Token invalide ou expiré, déconnexion automatique");
+      // Suppression du token et du cookie
+      localStorage.removeItem('auth_token');
+      document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict;";
+      window.location.href = '/login';
+    }
+  } catch (error) {
+    console.error("Erreur lors de la vérification du token:", error);
+  }
+}
+
 onMounted(() => {
+    checkAuthStatus();
     isAdmin();
 });
 </script>

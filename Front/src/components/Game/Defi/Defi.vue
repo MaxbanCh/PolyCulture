@@ -31,6 +31,7 @@ function askQuestion() {
         if (response.ok) {
             console.log("Question asked successfully");
             questionData.value = await response.json(); // Store the question data
+            console.log("Question data:", questionData.value);
         } else {
             console.error("Error asking question");
         }
@@ -80,13 +81,6 @@ function submitAnswer(answer: string) {
 
 onMounted(() => {
     fetchThemes()
-        // .then((response) => {
-        //     if (response.ok) {
-        //         return response.json();
-        //     } else {
-        //         throw new Error("Failed to fetch themes");
-        //     }
-        // })
         .then((data) => {
             themes.value = data; // Store the themes in the ref
         })
