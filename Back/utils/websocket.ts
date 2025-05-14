@@ -60,7 +60,7 @@ function joinRoom(data: any, ws: WebSocket) {
       ready: false
     });
     ws.data = { userId: data.userId, roomCode: data.roomCode };
-    ws.send(JSON.stringify({type: 'ROOM_JOINED', room: data.roomCode}));
+    ws.send(JSON.stringify({type: 'ROOM_JOINED', room: room}));
 
     broadcastToRoom(data.roomCode, {
       type: 'PLAYER_JOINED',
